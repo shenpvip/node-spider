@@ -6,14 +6,15 @@ const Koa = require('koa')
 const Router = require('koa-router')
 const app = new Koa()
 const router = new Router()
+const tools = require('./tools')
 
 let currentPage = 1
-const URL = `https://cnodejs.org/?tab=all&page=`
+const URL = `https://cnodejs.org`
 let arr
 
 const getNew = page => {
   console.log(page)
-  superagent.get(URL + page).end((err, res) => {
+  superagent.get(URL + `?tab=all&page=${page}`).end((err, res) => {
     if (err) {
       console.log(err)
     }
@@ -22,7 +23,7 @@ const getNew = page => {
     let itemContent = $(selectItem)
       .find('.topic_title_wrapper .topic_title')
       .text()
-    createFolder(path.resolve(__dirname, `download/content${page}.txt`))
+    tools.createFolder(path.resolve(__dirname, `download/content${page}.txt`))
     const ws = fs.createWriteStream(
       path.resolve(__dirname, `download/content${page}.txt`)
     )
@@ -39,20 +40,8 @@ const getNew = page => {
   })
 }
 
-const createFolder = to => {
-  //文件写入
-  const sep = path.sep
-  const folders = path.dirname(to).split(sep)
-  let p = ''
-  while (folders.length) {
-    p += folders.shift() + sep
-    if (!fs.existsSync(p)) {
-      fs.mkdirSync(p)
-    }
-  }
-}
 router.get('/', async (ctx, next) => {
-  superagent.get(URL + 1).end((err, res) => {
+  superagent.get(URL + `?tab=all&page=1`).end((err, res) => {
     if (err) {
       console.log(err)
     }
@@ -64,9 +53,11 @@ router.get('/', async (ctx, next) => {
         title: $(item)
           .find('.topic_title')
           .text(),
-        src: $(item)
-          .find('.topic_title')
-          .attr('href')
+        src:
+          URL +
+          $(item)
+            .find('.topic_title')
+            .attr('href')
       })
       // arr.push(
       //   `<div><a href="${$(item)
